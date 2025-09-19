@@ -179,7 +179,7 @@ export function ScheduleEdit({ mode = 'create', scheduleId }: Props) {
                 key={index}
                 formik={formik}
                 index={index}
-                places={places ?? []}
+                places={places?.data ?? []}
               />
             ))}
 

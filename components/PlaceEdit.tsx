@@ -4,7 +4,7 @@ import { Text } from 'react-native-paper';
 import {
   useCreatePlaceMutation,
   useDeletePlaceMutation,
-  useGetPlacesQuery,
+  useGetPlaceQuery,
   useUpdatePlaceMutation,
 } from '@/store/places/api';
 import { FormikHelpers, useFormik } from 'formik';
@@ -27,8 +27,9 @@ export default function PlaceEdit({ mode = 'create', placeId }: Props) {
 
   const [error, setError] = useState<string | null>(null);
 
-  const { data: places } = useGetPlacesQuery();
-  const place = places?.find((p) => p.id === placeId);
+  const { data: place } = useGetPlaceQuery(placeId!, {
+    skip: mode === 'create',
+  });
 
   const [createPlace, { isLoading: creating }] = useCreatePlaceMutation();
   const [updatePlace, { isLoading: updating }] = useUpdatePlaceMutation();
@@ -67,7 +68,7 @@ export default function PlaceEdit({ mode = 'create', placeId }: Props) {
     if (mode === 'edit' && place) {
       formik.resetForm({
         values: {
-          name: place.name,
+          name: place?.name,
         },
       });
     }

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useDispatch } from 'react-redux';
 import { getApiUrl } from '@/utils/helpers';
-import tokenService from '@/services/TokenService';
 import { ISchedule, ScheduleDeletedEvent } from '@/utils/types';
 import {
   setAddSchedule,
@@ -10,6 +9,8 @@ import {
   setUpdateSchedule,
 } from '@/store/schedules';
 import { setFilterFavorites, setUpdateFavorite } from '@/store/favorites';
+import { useAppSelector } from '@/hooks/useRedux';
+import { getToken } from '@/store/token/select';
 
 const serverUrl = getApiUrl();
 
@@ -17,15 +18,14 @@ export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const dispatch = useDispatch();
+  const { access } = useAppSelector(getToken);
 
   useEffect(() => {
     const connectSocket = async () => {
-      const token = await tokenService.getToken('accessToken');
-
-      if (!token) return;
+      if (!access) return;
 
       socketRef.current = io(serverUrl, {
-        auth: { token },
+        auth: { token: access },
         transports: ['websocket'],
       });
 
@@ -59,17 +59,16 @@ export const useSocket = () => {
     return () => {
       socketRef.current?.disconnect();
     };
-  }, [dispatch]);
+  }, [access, dispatch]);
 
   const reconnectWithNewToken = async () => {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
 
-    const token = await tokenService.getToken('accessToken');
-    if (token) {
+    if (access) {
       socketRef.current = io(serverUrl, {
-        auth: { token },
+        auth: { token: access },
         transports: ['websocket'],
       });
     }

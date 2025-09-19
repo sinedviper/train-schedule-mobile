@@ -10,30 +10,25 @@ import {
 export const schedulesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getSchedules: builder.query<IPagination<ISchedule[]>, IScheduleFilter>({
-      query: (filter) => {
-        const params = new URLSearchParams();
-
-        if (filter.trainType) {
-          params.append('trainType', filter.trainType);
-        }
-        if (filter.start?.date) {
-          params.append('start[date]', filter.start.date);
-        }
-        if (filter.start?.placeId) {
-          params.append('start[placeId]', filter.start.placeId.toString());
-        }
-        if (filter.end?.date) {
-          params.append('end[date]', filter.end.date);
-        }
-        if (filter.end?.placeId) {
-          params.append('end[placeId]', filter.end.placeId.toString());
-        }
-
+      query: (params) => {
+        console.log('SCHEDULES', params);
         return {
-          url: `/schedules?${params.toString()}`,
+          url: `/schedules`,
+          params,
         };
       },
       providesTags: ['schedule'],
+    }),
+    getSchedulesPagination: builder.mutation<
+      IPagination<ISchedule[]>,
+      IScheduleFilter
+    >({
+      query: (params) => {
+        return {
+          url: `/schedules`,
+          params,
+        };
+      },
     }),
     getSchedule: builder.query<ISchedule, number>({
       query: (id) => ({ url: `/schedules/${id}` }),
@@ -55,17 +50,14 @@ export const schedulesApi = api.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'schedule', id },
-        'schedule',
-      ],
+      invalidatesTags: (result, error, { id }) => [{ type: 'schedule', id }],
     }),
     deleteSchedule: builder.mutation<void, number>({
       query: (id) => ({
         url: `/schedules/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['schedule'],
+      invalidatesTags: (result, error, id) => [{ type: 'schedule', id }],
     }),
   }),
 });
@@ -76,8 +68,9 @@ export const {
   useCreateScheduleMutation,
   useUpdateScheduleMutation,
   useDeleteScheduleMutation,
+  useGetSchedulesPaginationMutation,
 } = schedulesApi;
 
 export const {
-  endpoints: { getSchedules },
+  endpoints: { getSchedules, getSchedulesPagination },
 } = schedulesApi;

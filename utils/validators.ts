@@ -1,6 +1,19 @@
 import * as yup from 'yup';
 import { ETrainType } from '@/utils/types';
 
+const passwordSchema = yup
+  .string()
+  .required('Password is required')
+  .min(6, 'Password must be at least 6 characters')
+  .max(20, 'Password must be at most 20 characters')
+  .matches(/(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+  .matches(/(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+  .matches(/(?=.*\d)/, 'Password must contain at least one digit')
+  .matches(
+    /(?=.*[!@#$%^&*])/,
+    'Password must contain at least one special character',
+  );
+
 // Auth validators
 export const registerSchema = yup.object({
   name: yup
@@ -14,28 +27,17 @@ export const registerSchema = yup.object({
     .required('Login is required')
     .min(3, 'Login must be at least 3 characters')
     .max(15, 'Login must be at most 15 characters'),
-  password: yup
-    .string()
-    .required('Password is required')
-    .min(6, 'Password must be at least 6 characters')
-    .max(20, 'Password must be at most 20 characters')
-    .matches(
-      /(?=.*[a-z])/,
-      'Password must contain at least one lowercase letter',
-    )
-    .matches(
-      /(?=.*[A-Z])/,
-      'Password must contain at least one uppercase letter',
-    )
-    .matches(/(?=.*\d)/, 'Password must contain at least one digit')
-    .matches(
-      /(?=.*[!@#$%^&*])/,
-      'Password must contain at least one special character',
-    ),
+  password: passwordSchema,
   role: yup
     .string()
     .required('Role is required')
     .oneOf(['USER', 'ADMIN'], 'Role must be USER or ADMIN'),
+});
+
+// Auth validators
+export const updatePasswordProfile = yup.object({
+  oldPassword: passwordSchema,
+  newPassword: passwordSchema,
 });
 
 export const loginSchema = yup.object({

@@ -3,9 +3,10 @@ import {
   IAuthRegistration,
   IAuthResponse,
   IUser,
+  UpdatePasswordProfileDto,
   UpdateProfileDto,
 } from '@/utils/types';
-import tokenService from '@/services/TokenService';
+import { setAccess, setRefresh } from '@/store/token';
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -20,9 +21,8 @@ export const authApi = api.injectEndpoints({
           const { data } = await queryFulfilled;
 
           if (data) {
-            await tokenService.setToken(data.access_token, 'accessToken');
-            await tokenService.setToken(data.refresh_token, 'refreshToken');
-
+            dispatch(setAccess(data.access_token));
+            dispatch(setRefresh(data.refresh_token));
             dispatch(getMe.initiate());
           }
         } catch (error) {
@@ -45,8 +45,8 @@ export const authApi = api.injectEndpoints({
           const { data } = await queryFulfilled;
 
           if (data) {
-            await tokenService.setToken(data.access_token, 'accessToken');
-            await tokenService.setToken(data.refresh_token, 'refreshToken');
+            dispatch(setAccess(data.access_token));
+            dispatch(setRefresh(data.refresh_token));
 
             dispatch(getMe.initiate());
           }
@@ -61,10 +61,11 @@ export const authApi = api.injectEndpoints({
         url: 'auth/logout',
         method: 'POST',
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           await queryFulfilled;
-          await tokenService.removeTokens();
+          dispatch(setAccess(null));
+          dispatch(setRefresh(null));
         } catch (error) {
           console.error('Failed to clear token:', error);
         }
@@ -86,6 +87,13 @@ export const authApi = api.injectEndpoints({
       }),
       invalidatesTags: ['user'],
     }),
+    updatePassword: build.mutation<IUser, UpdatePasswordProfileDto>({
+      query: (data) => ({
+        url: '/users/password',
+        method: 'PATCH',
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -95,6 +103,7 @@ export const {
   useGetMeQuery,
   useUpdateProfileMutation,
   useLogoutMutation,
+  useUpdatePasswordMutation,
 } = authApi;
 
 export const {

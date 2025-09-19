@@ -1,6 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IFavoriteSchedule, ISchedule } from '@/utils/types';
-import { getFavorites } from '@/store/favorites/api';
+import {
+  addFavorite,
+  getFavorites,
+  getFavoritesPagination,
+  removeFavorite,
+} from '@/store/favorites/api';
 
 export interface IFavoritesState {
   favorites: IFavoriteSchedule[];
@@ -37,12 +42,30 @@ export const favoritesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addMatcher(getFavorites.matchFulfilled, (state, { payload }) => {
-      state.favorites = payload.data;
-      state.total = payload.meta.total;
-      state.limit = payload.meta.limit;
-      state.page = payload.meta.page;
-    });
+    builder
+      .addMatcher(getFavorites.matchFulfilled, (state, { payload }) => {
+        state.favorites = payload.data;
+        state.total = payload.meta.total;
+        state.limit = payload.meta.limit;
+        state.page = payload.meta.page;
+      })
+      .addMatcher(
+        getFavoritesPagination.matchFulfilled,
+        (state, { payload }) => {
+          state.favorites = [...state.favorites, ...payload.data];
+          state.total = payload.meta.total;
+          state.limit = payload.meta.limit;
+          state.page = payload.meta.page;
+        },
+      )
+      .addMatcher(addFavorite.matchFulfilled, (state, { payload }) => {
+        state.favorites = [...state.favorites, payload];
+      })
+      .addMatcher(removeFavorite.matchFulfilled, (state, { payload }) => {
+        state.favorites = state.favorites.filter(
+          (item) => item.id !== payload.id,
+        );
+      });
   },
 });
 

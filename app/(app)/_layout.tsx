@@ -27,6 +27,9 @@ export default function Layout() {
         tabBarActiveTintColor: '#6200EE',
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
+        sceneStyle: {
+          paddingTop: 20,
+        },
       })}
     >
       <Tabs.Screen

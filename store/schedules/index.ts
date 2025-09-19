@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ISchedule } from '@/utils/types';
-import { getSchedules } from '@/store/schedules/api';
+import { getSchedules, getSchedulesPagination } from '@/store/schedules/api';
 
 export interface ISchedulesState {
   schedules: ISchedule[];
@@ -34,18 +34,40 @@ export const schedulesSlice = createSlice({
     setFilterSchedules: (state, { payload }: PayloadAction<number>) => {
       state.schedules = state.schedules.filter((item) => item.id !== payload);
     },
+    setFavSchedule: (state, { payload }: PayloadAction<number>) => {
+      const findItem = state.schedules.find((v) => v.id === payload);
+      if (findItem) {
+        state.schedules = state.schedules.map((v) =>
+          v.id === payload ? { ...v, isFavorite: !v.isFavorite } : v,
+        );
+      }
+    },
   },
   extraReducers: (builder) => {
-    builder.addMatcher(getSchedules.matchFulfilled, (state, { payload }) => {
-      state.schedules = payload.data;
-      state.total = payload.meta.total;
-      state.limit = payload.meta.limit;
-      state.page = payload.meta.page;
-    });
+    builder
+      .addMatcher(getSchedules.matchFulfilled, (state, { payload }) => {
+        state.schedules = payload.data;
+        state.total = payload.meta.total;
+        state.limit = payload.meta.limit;
+        state.page = payload.meta.page;
+      })
+      .addMatcher(
+        getSchedulesPagination.matchFulfilled,
+        (state, { payload }) => {
+          state.schedules = [...state.schedules, ...payload.data];
+          state.total = payload.meta.total;
+          state.limit = payload.meta.limit;
+          state.page = payload.meta.page;
+        },
+      );
   },
 });
 
-export const { setFilterSchedules, setAddSchedule, setUpdateSchedule } =
-  schedulesSlice.actions;
+export const {
+  setFilterSchedules,
+  setAddSchedule,
+  setUpdateSchedule,
+  setFavSchedule,
+} = schedulesSlice.actions;
 
 export default schedulesSlice.reducer;

@@ -4,14 +4,28 @@ import { Text, FAB } from 'react-native-paper';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
-import { useGetPlacesQuery } from '@/store/places/api';
+import {
+  useGetPlacesPaginationMutation,
+  useGetPlacesQuery,
+} from '@/store/places/api';
 import { IPlace } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import { ButtonBack } from '@/components/ButtonBack';
+import { Button } from '@/components/ui/Button';
+import { useAppSelector } from '@/hooks/useRedux';
+import { getPlace } from '@/store/places/select';
 
-export default function PlacesListScreen() {
+export default function Places() {
   const router = useRouter();
-  const { data: places, isLoading, error, refetch } = useGetPlacesQuery();
+
+  const { isLoading, error, refetch } = useGetPlacesQuery();
+
+  const [page, setPage] = React.useState(1);
+
+  const [getPlacesPag, { isLoading: isLoadingPag }] =
+    useGetPlacesPaginationMutation();
+
+  const { places, total } = useAppSelector(getPlace);
 
   const renderPlaceItem = ({ item }: { item: IPlace }) => (
     <Card
@@ -34,17 +48,36 @@ export default function PlacesListScreen() {
       {error && <ErrorBanner message="Failed to load places" />}
 
       <FlatList
-        data={places?.data ?? []}
+        data={places}
         renderItem={renderPlaceItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         refreshing={isLoading}
-        onRefresh={refetch}
+        onRefresh={() => {
+          refetch();
+          setPage(1);
+        }}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No places found</Text>
         }
       />
 
+      <View
+        style={{
+          padding: 20,
+          display: page === total ? 'none' : isLoading ? 'none' : 'flex',
+        }}
+      >
+        <Button
+          title={'More'}
+          disabled={isLoadingPag}
+          loading={isLoadingPag}
+          onPress={() => {
+            setPage(page + 1);
+            getPlacesPag({ page: page + 1 });
+          }}
+        />
+      </View>
       <FAB
         icon="plus"
         color={'white'}

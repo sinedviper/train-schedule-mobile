@@ -28,6 +28,7 @@ export interface IUser {
 export interface ISchedule {
   id: number;
   type: TTrainType;
+  isFavorite: boolean;
   points: ISchedulePoint[];
   createdAt: string;
 }
@@ -112,20 +113,22 @@ export interface UpdateProfileDto {
   login?: string;
 }
 
+export interface UpdatePasswordProfileDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export interface CreateFavoriteDto {
   scheduleId: number;
 }
 
 export interface IScheduleFilter {
-  trainType?: TTrainType;
-  start?: {
-    date?: string;
-    placeId?: number;
-  };
-  end?: {
-    date?: string;
-    placeId?: number;
-  };
+  type?: TTrainType;
+  startDate?: string;
+  startPlaceId?: number;
+  endDate?: string;
+  endPlaceId?: number;
+  page: number;
 }
 
 export interface IApiError {

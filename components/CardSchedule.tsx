@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 
 interface Props {
   schedule: ISchedule;
-  handleStar: (id: number) => void;
+  handleStar: (schedule: ISchedule) => void;
   isFavorite?: boolean;
 }
 
@@ -35,7 +35,7 @@ export default function CardSchedule({
             <Star
               size={24}
               color={isFavorite ? '#e91e63' : '#ccc'}
-              onPress={() => handleStar(schedule.id)}
+              onPress={() => handleStar(schedule)}
             />
           </View>
 

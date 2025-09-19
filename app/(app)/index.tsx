@@ -4,10 +4,12 @@ import { Text, FAB, Chip } from 'react-native-paper';
 import { useAppSelector } from '@/hooks/useRedux';
 import { getAuth } from '@/store/auth/select';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
-import { useGetSchedulesQuery } from '@/store/schedules/api';
+import {
+  useGetSchedulesPaginationMutation,
+  useGetSchedulesQuery,
+} from '@/store/schedules/api';
 import {
   useAddFavoriteMutation,
-  useGetFavoritesQuery,
   useRemoveFavoriteMutation,
 } from '@/store/favorites/api';
 import { ETrainType, ISchedule, IScheduleFilter } from '@/utils/types';
@@ -15,30 +17,34 @@ import { Loading } from '@/components/ui/Loading';
 import { useRouter } from 'expo-router';
 import CardSchedule from '@/components/CardSchedule';
 import { getSchedules } from '@/store/schedules/select';
+import { Button } from '@/components/ui/Button';
+import { FilterCard } from '@/components/FilterCard';
 
 export default function Index() {
   const router = useRouter();
   const { user } = useAppSelector(getAuth);
   const isAdmin = user?.role === 'ADMIN';
 
-  const [filter, setFilter] = useState<IScheduleFilter>({});
+  const [filter, setFilter] = useState<IScheduleFilter>({ page: 1 });
 
-  const { schedules } = useAppSelector(getSchedules);
-  const { isLoading, error, refetch } = useGetSchedulesQuery(filter);
-  const { data: favorites } = useGetFavoritesQuery();
+  const { schedules, total } = useAppSelector(getSchedules);
+  const { isLoading, error, refetch } = useGetSchedulesQuery(filter, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  console.log(schedules);
+
+  const [getSchedulesPagination, { isLoading: isLoadingPag }] =
+    useGetSchedulesPaginationMutation();
   const [addFavorite] = useAddFavoriteMutation();
   const [removeFavorite] = useRemoveFavoriteMutation();
 
-  const favoriteScheduleIds = new Set(
-    favorites?.map((f) => f.scheduleId) || [],
-  );
-
-  const handleFavoriteToggle = async (scheduleId: number) => {
+  const handleFavoriteToggle = async (schedule: ISchedule) => {
     try {
-      if (favoriteScheduleIds.has(scheduleId)) {
-        await removeFavorite(scheduleId);
+      if (schedule.isFavorite) {
+        await removeFavorite(schedule.id);
       } else {
-        await addFavorite({ scheduleId });
+        await addFavorite({ scheduleId: schedule.id });
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
@@ -50,7 +56,7 @@ export default function Index() {
       <CardSchedule
         schedule={item}
         handleStar={handleFavoriteToggle}
-        isFavorite={favoriteScheduleIds.has(item.id)}
+        isFavorite={item.isFavorite}
         key={item.id}
       />
     );
@@ -62,10 +68,39 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
+      <View
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexDirection: 'row',
+          paddingBottom: 10,
+        }}
+      >
+        <FilterCard
+          value={{ date: filter.startDate, placeId: filter.startPlaceId }}
+          onChange={(start) =>
+            setFilter({
+              ...filter,
+              startDate: start.date,
+              startPlaceId: start.placeId,
+            })
+          }
+          label={'From'}
+        />
+        <FilterCard
+          value={{ date: filter.endDate, placeId: filter.endPlaceId }}
+          onChange={(end) =>
+            setFilter({ ...filter, endDate: end.date, endPlaceId: end.placeId })
+          }
+          label={'To'}
+        />
+      </View>
       <View style={styles.filterContainer}>
         <Chip
-          selected={!filter.trainType}
-          onPress={() => setFilter({ ...filter, trainType: undefined })}
+          selected={!filter.type}
+          onPress={() => setFilter({ ...filter, type: undefined })}
           style={styles.filterChip}
         >
           All
@@ -73,8 +108,8 @@ export default function Index() {
         {Object.values(ETrainType).map((type) => (
           <Chip
             key={type}
-            selected={filter.trainType === type}
-            onPress={() => setFilter({ ...filter, trainType: type })}
+            selected={filter.type === type}
+            onPress={() => setFilter({ ...filter, type: type })}
             style={styles.filterChip}
           >
             {type}
@@ -90,11 +125,31 @@ export default function Index() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         refreshing={isLoading}
-        onRefresh={refetch}
+        onRefresh={() => {
+          refetch();
+          setFilter({ ...filter, page: 1 });
+        }}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No schedules found</Text>
         }
       />
+
+      <View
+        style={{
+          padding: 20,
+          display: filter.page === total ? 'none' : isLoading ? 'none' : 'flex',
+        }}
+      >
+        <Button
+          title={'More'}
+          disabled={isLoadingPag}
+          loading={isLoadingPag}
+          onPress={() => {
+            setFilter({ ...filter, page: filter.page + 1 });
+            getSchedulesPagination({ ...filter, page: filter.page + 1 });
+          }}
+        />
+      </View>
 
       {isAdmin && (
         <FAB
@@ -126,6 +181,7 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     paddingTop: 8,
+    flex: 1,
   },
   emptyText: {
     textAlign: 'center',

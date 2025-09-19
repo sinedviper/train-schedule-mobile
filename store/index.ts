@@ -20,19 +20,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import authReducer from '@/store/auth';
 import favoritesReducer from '@/store/favorites';
 import schedulesReducer from '@/store/schedules';
+import tokenReducer from '@/store/token';
+import placesReducer from '@/store/places';
 import { api } from '@/store/services/api';
 
 const reducer = combineReducers({
   auth: authReducer,
   schedules: schedulesReducer,
   favorites: favoritesReducer,
+  token: tokenReducer,
+  places: placesReducer,
   [api.reducerPath]: api.reducer,
 });
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth'],
+  whitelist: ['token', 'auth'],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducer);

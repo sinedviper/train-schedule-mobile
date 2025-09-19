@@ -7,7 +7,6 @@ import { getAuth } from '@/store/auth/select';
 import { useGetScheduleQuery } from '@/store/schedules/api';
 import {
   useAddFavoriteMutation,
-  useGetFavoritesQuery,
   useRemoveFavoriteMutation,
 } from '@/store/favorites/api';
 import { Loading } from '@/components/ui/Loading';
@@ -30,14 +29,12 @@ export default function ScheduleDetailsScreen() {
     isLoading,
     error,
   } = useGetScheduleQuery(+schedulesId);
-  const { data: favorites } = useGetFavoritesQuery();
   const [addFavorite] = useAddFavoriteMutation();
   const [removeFavorite] = useRemoveFavoriteMutation();
-  const isFavorite = favorites?.some((f) => f.scheduleId === +schedulesId);
 
   const handleFavoriteToggle = async () => {
     try {
-      if (isFavorite) {
+      if (schedule?.isFavorite) {
         await removeFavorite(+schedulesId);
       } else {
         await addFavorite({ scheduleId: +schedulesId });
@@ -67,7 +64,7 @@ export default function ScheduleDetailsScreen() {
           <View style={styles.titleRow}>
             <Chip style={styles.typeChip}>{schedule.type}</Chip>
             <Star
-              color={isFavorite ? '#e91e63' : '#ccc'}
+              color={schedule.isFavorite ? '#e91e63' : '#ccc'}
               onPress={handleFavoriteToggle}
             />
           </View>

@@ -3,21 +3,24 @@ import Toast from 'react-native-toast-message';
 import { useSocket } from '@/hooks/useSocket';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/hooks/useRedux';
-import { getAuth } from '@/store/auth/select';
+
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { getToken } from '@/store/token/select';
 
 export const AppContent = () => {
   const router = useRouter();
   useSocket();
 
-  const { isAuthenticated } = useAppSelector(getAuth);
+  const { access, refresh } = useAppSelector(getToken);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(app)');
+    if (access) {
+      router.push('/(app)');
+    } else {
+      router.dismissAll();
     }
-  }, [isAuthenticated, router]);
+  }, [access, router]);
 
   return (
     <SafeAreaView
@@ -29,9 +32,14 @@ export const AppContent = () => {
       edges={['top', 'right', 'left']}
     >
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }} initialRouteName={'index'}>
-        <Stack.Screen name="index" options={{ gestureEnabled: false }} />
-        <Stack.Screen name={'(app)'} options={{ gestureEnabled: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={!refresh}>
+          <Stack.Screen name={'index'} options={{ gestureEnabled: false }} />
+          <Stack.Screen name={'register'} options={{ gestureEnabled: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!!refresh}>
+          <Stack.Screen name={'(app)'} options={{ gestureEnabled: false }} />
+        </Stack.Protected>
       </Stack>
       <Toast />
     </SafeAreaView>

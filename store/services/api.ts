@@ -11,14 +11,16 @@ import {
   FetchBaseQueryError,
   FetchBaseQueryMeta,
 } from '@reduxjs/toolkit/query';
-import tokenService from '@/services/TokenService';
+import { RootState } from '@/store';
+import { setAccess, setRefresh } from '@/store/token';
 
 const baseUrl = getApiUrl();
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,
-  prepareHeaders: async (headers) => {
-    const accessToken = await tokenService.getToken('accessToken');
+  prepareHeaders: async (headers, { getState }) => {
+    const accessToken = (getState() as RootState).token.access;
+
     if (accessToken) {
       headers.set('Authorization', `Bearer ${accessToken}`);
     }
@@ -64,7 +66,7 @@ const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, IApiError> = async (
 
     if (error.status === 401) {
       try {
-        const refreshToken = await tokenService.getToken('refreshToken');
+        const refreshToken = (api.getState() as RootState).token.refresh;
 
         if (refreshToken) {
           const refreshResponse = await rawBaseQuery(
@@ -78,10 +80,12 @@ const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, IApiError> = async (
           );
 
           if (refreshResponse.data) {
-            const { access_token } = refreshResponse.data as {
+            const { access_token, refresh_token } = refreshResponse.data as {
               access_token: string;
+              refresh_token: string;
             };
-            await tokenService.setToken(access_token, 'accessToken');
+            api.dispatch(setAccess(access_token));
+            api.dispatch(setRefresh(refresh_token));
 
             if (args.headers) {
               if (args.headers instanceof Headers) {
@@ -105,13 +109,16 @@ const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, IApiError> = async (
 
             return { data: retryResult.data };
           } else {
-            await tokenService.removeTokens();
+            api.dispatch(setAccess(null));
+            api.dispatch(setRefresh(null));
           }
         } else {
-          await tokenService.removeTokens();
+          api.dispatch(setAccess(null));
+          api.dispatch(setRefresh(null));
         }
       } catch (e) {
-        await tokenService.removeTokens();
+        api.dispatch(setAccess(null));
+        api.dispatch(setRefresh(null));
       }
     }
 
