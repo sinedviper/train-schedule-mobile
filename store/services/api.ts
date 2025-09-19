@@ -12,7 +12,6 @@ import {
   FetchBaseQueryMeta,
 } from '@reduxjs/toolkit/query';
 import tokenService from '@/services/TokenService';
-import { router } from 'expo-router';
 
 const baseUrl = getApiUrl();
 
@@ -106,15 +105,12 @@ const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, IApiError> = async (
 
             return { data: retryResult.data };
           } else {
-            router.dismissAll();
             await tokenService.removeTokens();
           }
         } else {
-          router.dismissAll();
           await tokenService.removeTokens();
         }
       } catch (e) {
-        router.dismissAll();
         await tokenService.removeTokens();
       }
     }

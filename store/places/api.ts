@@ -1,9 +1,14 @@
 import { api } from '@/store/services/api';
-import { CreatePlaceDto, IPlace, UpdatePlaceDto } from '@/utils/types';
+import {
+  CreatePlaceDto,
+  IPagination,
+  IPlace,
+  UpdatePlaceDto,
+} from '@/utils/types';
 
 export const placesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getPlaces: builder.query<IPlace[], void>({
+    getPlaces: builder.query<IPagination<IPlace[]>, void>({
       query: () => ({ url: '/places' }),
       providesTags: ['place'],
     }),

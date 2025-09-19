@@ -1,6 +1,7 @@
 import { api } from '@/store/services/api';
 import {
   CreateScheduleDto,
+  IPagination,
   ISchedule,
   IScheduleFilter,
   UpdateScheduleDto,
@@ -8,7 +9,7 @@ import {
 
 export const schedulesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getSchedules: builder.query<ISchedule[], IScheduleFilter>({
+    getSchedules: builder.query<IPagination<ISchedule[]>, IScheduleFilter>({
       query: (filter) => {
         const params = new URLSearchParams();
 

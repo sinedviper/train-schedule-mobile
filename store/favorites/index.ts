@@ -4,10 +4,16 @@ import { getFavorites } from '@/store/favorites/api';
 
 export interface IFavoritesState {
   favorites: IFavoriteSchedule[];
+  total: number;
+  limit: number;
+  page: number;
 }
 
 const initialState: IFavoritesState = {
   favorites: [],
+  total: 1,
+  limit: 20,
+  page: 1,
 };
 
 export const favoritesSlice = createSlice({
@@ -32,7 +38,10 @@ export const favoritesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addMatcher(getFavorites.matchFulfilled, (state, { payload }) => {
-      state.favorites = payload;
+      state.favorites = payload.data;
+      state.total = payload.meta.total;
+      state.limit = payload.meta.limit;
+      state.page = payload.meta.page;
     });
   },
 });

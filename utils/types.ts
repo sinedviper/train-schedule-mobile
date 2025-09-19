@@ -32,6 +32,15 @@ export interface ISchedule {
   createdAt: string;
 }
 
+export interface IPagination<Data> {
+  data: Data;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
 export interface ISchedulePoint {
   id: number;
   timeToArrive: string;

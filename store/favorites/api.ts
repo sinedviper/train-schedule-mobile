@@ -1,9 +1,13 @@
 import { api } from '@/store/services/api';
-import { CreateFavoriteDto, IFavoriteSchedule } from '@/utils/types';
+import {
+  CreateFavoriteDto,
+  IFavoriteSchedule,
+  IPagination,
+} from '@/utils/types';
 
 export const favoritesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getFavorites: builder.query<IFavoriteSchedule[], void>({
+    getFavorites: builder.query<IPagination<IFavoriteSchedule[]>, void>({
       query: () => ({ url: '/favorites', method: 'GET' }),
       providesTags: ['favorite'],
     }),

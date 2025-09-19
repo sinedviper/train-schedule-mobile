@@ -34,7 +34,7 @@ export default function PlacesListScreen() {
       {error && <ErrorBanner message="Failed to load places" />}
 
       <FlatList
-        data={places}
+        data={places?.data ?? []}
         renderItem={renderPlaceItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}

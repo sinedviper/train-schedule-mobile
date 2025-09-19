@@ -4,10 +4,16 @@ import { getSchedules } from '@/store/schedules/api';
 
 export interface ISchedulesState {
   schedules: ISchedule[];
+  total: number;
+  limit: number;
+  page: number;
 }
 
 const initialState: ISchedulesState = {
   schedules: [],
+  total: 1,
+  limit: 20,
+  page: 1,
 };
 
 export const schedulesSlice = createSlice({
@@ -31,7 +37,10 @@ export const schedulesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addMatcher(getSchedules.matchFulfilled, (state, { payload }) => {
-      state.schedules = payload;
+      state.schedules = payload.data;
+      state.total = payload.meta.total;
+      state.limit = payload.meta.limit;
+      state.page = payload.meta.page;
     });
   },
 });
