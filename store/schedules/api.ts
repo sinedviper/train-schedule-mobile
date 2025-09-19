@@ -11,7 +11,6 @@ export const schedulesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getSchedules: builder.query<IPagination<ISchedule[]>, IScheduleFilter>({
       query: (params) => {
-        console.log('SCHEDULES', params);
         return {
           url: `/schedules`,
           params,

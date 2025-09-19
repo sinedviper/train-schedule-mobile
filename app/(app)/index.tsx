@@ -32,8 +32,6 @@ export default function Index() {
     refetchOnMountOrArgChange: true,
   });
 
-  console.log(schedules);
-
   const [getSchedulesPagination, { isLoading: isLoadingPag }] =
     useGetSchedulesPaginationMutation();
   const [addFavorite] = useAddFavoriteMutation();

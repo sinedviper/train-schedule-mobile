@@ -31,12 +31,12 @@ export const useSocket = () => {
 
       socketRef.current.on('connect', () => {
         setIsConnected(true);
-        console.log('Socket connected');
+        console.debug('Socket connected');
       });
 
       socketRef.current.on('disconnect', () => {
         setIsConnected(false);
-        console.log('Socket disconnected');
+        console.debug('Socket disconnected');
       });
 
       socketRef.current.on('schedule_created', (data: ISchedule) => {
