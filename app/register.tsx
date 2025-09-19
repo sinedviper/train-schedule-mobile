@@ -1,39 +1,40 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { Picker } from '@react-native-picker/picker';
 
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { ErrorBanner } from '@/components/ui/ErrorBanner';
-import { loginSchema } from '@/utils/validators';
-import { useLoginMutation } from '@/store/auth/api';
+import { registerSchema } from '@/utils/validators';
 import { IAuthRegistration } from '@/utils/types';
+import { useRegistrationMutation } from '@/store/auth/api';
 import { useFormik } from 'formik';
 import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function Register() {
   const router = useRouter();
   const theme = useTheme();
-  const [loginUser, { isLoading }] = useLoginMutation();
+  const [registerUser, { isLoading }] = useRegistrationMutation();
   const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = async (
-    data: Pick<IAuthRegistration, 'login' | 'password'>,
-  ) => {
+  const onSubmit = async (data: IAuthRegistration) => {
     try {
       setError(null);
-      await loginUser(data).unwrap();
+      await registerUser(data).unwrap();
       router.push('/(app)');
     } catch (err: any) {
-      setError(err?.message || 'Login failed');
+      setError(err?.message || 'Registration failed');
     }
   };
 
-  const formik = useFormik<Pick<IAuthRegistration, 'login' | 'password'>>({
-    validationSchema: loginSchema,
+  const formik = useFormik<IAuthRegistration>({
+    validationSchema: registerSchema,
     initialValues: {
+      name: '',
       login: '',
       password: '',
+      role: 'USER',
     },
     onSubmit,
   });
@@ -42,15 +43,24 @@ export default function LoginScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.primary }]}>
-          Welcome Back
+          Create Account
         </Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <Text style={styles.subtitle}>Sign up to get started</Text>
 
         {error && (
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
 
         <View style={styles.form}>
+          <TextInput
+            label="Full Name"
+            value={formik.values.name || ''}
+            onChangeText={(v) => formik.setFieldValue('name', v)}
+            error={!!formik.errors.name}
+            helperText={formik.errors.name}
+            style={styles.input}
+          />
+
           <TextInput
             label="Login"
             value={formik.values.login || ''}
@@ -64,22 +74,33 @@ export default function LoginScreen() {
             label="Password"
             value={formik.values.password || ''}
             onChangeText={(v) => formik.setFieldValue('password', v)}
-            secureTextEntry
             error={!!formik.errors.password}
             helperText={formik.errors.password}
             style={styles.input}
           />
 
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>Role</Text>
+            <Picker
+              selectedValue={formik.values.role}
+              onValueChange={(v) => formik.setFieldValue('role', v)}
+              style={styles.picker}
+            >
+              <Picker.Item label="User" value="USER" />
+              <Picker.Item label="Admin" value="ADMIN" />
+            </Picker>
+          </View>
+
           <Button
-            title="Sign In"
+            title="Sign Up"
             onPress={formik.submitForm}
             loading={isLoading}
             style={styles.button}
           />
 
           <Button
-            title="Don't have an account? Sign Up"
-            onPress={() => router.push('/register')}
+            title="Already have an account? Sign In"
+            onPress={() => router.push('/')}
             mode="text"
             style={styles.linkButton}
           />
@@ -116,6 +137,18 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 8,
+  },
+  pickerContainer: {
+    marginBottom: 8,
+  },
+  pickerLabel: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#666',
+  },
+  picker: {
+    backgroundColor: '#fff',
+    borderRadius: 4,
   },
   button: {
     marginTop: 16,
