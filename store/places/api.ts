@@ -10,6 +10,7 @@ export const placesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getPlaces: builder.query<IPagination<IPlace[]>, void>({
       query: () => ({ url: '/places' }),
+      providesTags: ['place'],
     }),
     getPlacesSearch: builder.mutation<
       IPagination<IPlace[]>,
@@ -18,6 +19,7 @@ export const placesApi = api.injectEndpoints({
       query: (params) => {
         return { url: '/places', params };
       },
+      invalidatesTags: ['place'],
     }),
     getPlacesPagination: builder.mutation<
       IPagination<IPlace[]>,

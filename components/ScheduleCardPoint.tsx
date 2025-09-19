@@ -6,6 +6,7 @@ import React from 'react';
 import { IPlace, ScheduleForm } from '@/utils/types';
 import { FormikProps } from 'formik';
 import { Button } from '@/components/ui/Button';
+import { SearchCity } from '@/components/SearchCity';
 
 interface Props {
   formik: FormikProps<ScheduleForm>;
@@ -21,23 +22,18 @@ export const ScheduleCardPoint = ({ formik, index, places }: Props) => {
       <Text style={styles.pointTitle}>Point {index + 1}</Text>
 
       <View style={styles.pickerContainer}>
-        <Text style={styles.pickerLabel}>Place</Text>
-        <Picker
-          selectedValue={formik.values.points[index].placeId || 0}
-          onValueChange={(v) =>
-            formik.setFieldValue(`points.${index}.placeId`, v)
-          }
-          style={styles.picker}
-        >
-          <Picker.Item label="Select a place" value={0} />
-          {places?.map((place) => (
-            <Picker.Item key={place.id} label={place.name} value={place.id} />
-          ))}
-        </Picker>
+        <Text style={styles.pickerLabel}>
+          {places.find((v) => v.id === formik.values.points[index].placeId)
+            ?.name ?? 'Please select a place'}
+        </Text>
+        <SearchCity
+          value={formik.values.points[index].placeId || 0}
+          onChange={(v) => formik.setFieldValue(`points.${index}.placeId`, v)}
+        />
       </View>
 
       <Button
-        title={`Arrive date - ${new Date(formik.values.points[index].timeToArrive || new Date()).toLocaleString()}`}
+        title={`Arrive date - ${new Date(formik.values.points[index].timeToArrive || new Date()).toLocaleString('ru-RU')}`}
         onPress={() => setShowDate(!showDate)}
       />
       <DateTimePickerModal

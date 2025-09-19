@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useGetPlacesSearchMutation } from '@/store/places/api';
-import { IPlace } from '@/utils/types';
+import { SearchCity } from '@/components/SearchCity';
 
 interface FilterCardProps {
   label: string;
@@ -21,66 +13,21 @@ interface FilterCardProps {
 }
 
 export const FilterCard = ({ label, value, onChange }: FilterCardProps) => {
-  const [query, setQuery] = useState('');
-  const refSearch = useRef<string>('');
-  const [places, setPlaces] = useState<IPlace[]>([]);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-
-  const [getPlaces] = useGetPlacesSearchMutation();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (refSearch.current.length >= 2) {
-        getPlaces({ search: refSearch.current })
-          .unwrap()
-          .then((res) => {
-            setPlaces(res.data);
-          });
-      } else {
-        setPlaces([]);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [refSearch.current]);
 
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>
 
-      <TextInput
-        value={query}
-        onChangeText={(v) => {
-          setQuery(v);
-          refSearch.current = v;
-        }}
-        placeholder="Enter place"
-        style={styles.input}
+      <SearchCity
+        value={value.placeId || 0}
+        onChange={(v) => onChange({ ...value, placeId: v })}
       />
-
-      {places.length > 0 && (
-        <FlatList
-          keyboardShouldPersistTaps="handled"
-          data={places}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.placeItem}
-              onPress={() => {
-                onChange({ ...value, placeId: item.id });
-                setPlaces([]);
-                setQuery(item.name);
-              }}
-            >
-              <Text>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-          style={{ maxHeight: 150 }}
-        />
-      )}
 
       <TouchableOpacity
         onPress={() => setDatePickerVisibility(true)}
         style={styles.dateButton}
+        activeOpacity={0.8}
       >
         <Text>
           {value.date
@@ -108,12 +55,11 @@ export const FilterCard = ({ label, value, onChange }: FilterCardProps) => {
         onCancel={() => setDatePickerVisibility(false)}
       />
       <TouchableOpacity
-        style={styles.placeItem}
+        style={styles.clear}
         onPress={() => {
-          onChange({ ...value, placeId: undefined, date: undefined });
-          setPlaces([]);
-          setQuery('');
+          onChange({ ...value, date: undefined });
         }}
+        activeOpacity={0.8}
       >
         <Text>Clear</Text>
       </TouchableOpacity>
@@ -134,17 +80,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  clear: {
+    textAlign: 'center',
+    paddingVertical: 3,
+    alignItems: 'center',
+    width: '100%',
+  },
   label: {
     fontWeight: '600',
     marginBottom: 8,
     fontSize: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
   },
   placeItem: {
     padding: 8,
