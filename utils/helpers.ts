@@ -19,7 +19,7 @@ const API_URLS: ApiUrls = {
         ? 'http://localhost:4000'
         : 'http://192.168.0.227:4000',
   },
-  production: '',
+  production: 'https://train-schedule-server-production-5931.up.railway.app',
 };
 
 export const getApiUrl = (): string => {
